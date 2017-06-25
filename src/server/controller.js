@@ -3,8 +3,8 @@
 // Web Controller
 export const homePage = () => null
 
-export const helloPage = () => ({
-  hello: { message: 'Server-side preloaded message' },
+export const rulesPage = () => ({
+  rules: { message: 'Server-side preloaded message' },
 })
 
 export const helloAsyncPage = () => ({

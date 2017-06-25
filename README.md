@@ -7,7 +7,7 @@ A Dynamic Network Framework for remote areas without access to the Internet
 
 This is the BE part of the **RELAY** project
 
-FE Android App Designed & Created by [@omerel](https://twitter.com/omerel) avialble [here](https://github.com/omerel/RELAY)
+FE Android App Designed & Created by [@omerel](https://github.com//omerel) avialble [here](https://github.com/omerel/RELAY)
 
 ## Built With
 
@@ -23,8 +23,8 @@ FE Android App Designed & Created by [@omerel](https://twitter.com/omerel) avial
 
 ## Credits
 
-* Designed & Created by [@barrinbar](https://twitter.com/barrinbar)
-* Shared the love of RELAY with [@omerel](https://twitter.com/omerel)
+* Designed & Created by [@barrinbar](https://github.com/barrinbar/) and [@omerel](https://github.com//omerel)
+* Shared the love of RELAY with [@omerel](https://github.com//omerel)
 * Mentored by Boris Morose @ [Afeka College](http://english.afeka.ac.il)
 * Initiatied with [@verekia](https://github.com/verekia/)'s [boilerplate](https://github.com/verekia/js-stack-from-scratch/releases)
 

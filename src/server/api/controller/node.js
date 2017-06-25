@@ -107,28 +107,55 @@ exports.delete = (req, res) => {
   }
 }
 
+// exports.graph = (req, res, next) => {
+//   if (!req.node) { return res.status(HTTP_BAD_REQUEST).json('Must specify node') }
+//   // Suppose we have a collection of courses, where a document might look like
+//   // `{ _id: 0, name: 'Calculus', prerequisite: 'Trigonometry'}` and
+//   // `{ _id: 0, name: 'Trigonometry', prerequisite: 'Algebra' }`
+//   Node.aggregate({ $match: { mId: req.node.id } }).graphLookup({
+//     from: 'relations',
+//     startWith: '$mId',
+//     connectFromField: 'relations',
+//     connectToField: 'node',
+//     as: 'relations',
+//     maxDepth: req.node.mRank,
+//     depthField: 'nodeDegree' },
+//     (err, result) => {
+//       if (err) {
+//         console.error(err)
+//         return res.status(HTTP_NOT_FOUND).json('Node graph not found')
+//       }
+//       console.log(`Graph: ${result}`)
+//       req.graph = result
+//       return next()
+//     }).exec()
+//   console.log(`Graph: ${req.graph}`)
+//   return res.status(HTTP_INTERNAL_SERVER_ERROR).json('Couldnt perform aggregation')
+// }
+
 exports.graph = (req, res, next) => {
-  if (!req.node) { return res.status(HTTP_BAD_REQUEST).json('Must specify node') }
+  // if (!req.node) { return res.status(HTTP_BAD_REQUEST).json('Must specify node') }
   // Suppose we have a collection of courses, where a document might look like
   // `{ _id: 0, name: 'Calculus', prerequisite: 'Trigonometry'}` and
   // `{ _id: 0, name: 'Trigonometry', prerequisite: 'Algebra' }`
-  Node.aggregate({ $match: { mId: req.node.id } }).graphLookup({
-    from: 'relations',
-    startWith: '$mId',
-    connectFromField: 'relations',
-    connectToField: 'node',
-    as: 'relations',
-    maxDepth: req.node.mRank,
-    depthField: 'nodeDegree' },
-    (err, result) => {
-      if (err) {
-        console.error(err)
-        return res.status(HTTP_NOT_FOUND).json('Node graph not found')
-      }
-      console.log(`Graph: ${result}`)
-      req.graph = result
-      return next()
-    }).exec()
-  console.log(`Graph: ${req.graph}`)
-  return res.status(HTTP_INTERNAL_SERVER_ERROR).json('Couldnt perform aggregation')
+  Node.aggregate([{ $match: { node: req.params.id } },
+    { $graphLookup: {
+      from: 'relations',
+      startWith: '$mId',
+      connectFromField: 'relations',
+      connectToField: 'node',
+      as: 'relations',
+      maxDepth: req.node.mRank,
+      depthField: 'nodeDegree' } },
+    { $unwind: '$relations' }])
+  .then((result) => {
+    req.graph = result
+    console.log(`Graph: ${result}`)
+    return next()
+  })
+  .catch((error) => {
+    console.error('error', error)
+    return res.status(HTTP_INTERNAL_SERVER_ERROR).json(error)
+  })
+  // return res.status(HTTP_INTERNAL_SERVER_ERROR).json('Couldnt perform aggregation')
 }

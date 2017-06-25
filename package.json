@@ -30,6 +30,9 @@
     "bootstrap": "4.0.0-alpha.6",
     "compression": "^1.6.2",
     "express": "^4.15.0",
+    "file-loader": "^0.11.2",
+    "html-loader": "^0.4.5",
+    "https": "^1.0.0",
     "immutable": "^4.0.0-rc.1",
     "isomorphic-fetch": "^2.2.1",
     "jquery": "^3.1.1",
@@ -47,7 +50,8 @@
     "redux-thunk": "^2.2.0",
     "socket.io": "^1.7.3",
     "socket.io-client": "^1.7.3",
-    "tether": "^1.4.0"
+    "tether": "^1.4.0",
+    "url-loader": "^0.5.9"
   },
   "devDependencies": {
     "babel-cli": "^6.23.0",

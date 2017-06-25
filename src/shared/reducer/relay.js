@@ -4,7 +4,7 @@ import Immutable from 'immutable'
 import type { fromJS as Immut } from 'immutable'
 
 import {
-  SAY_HELLO,
+  RULES,
   SAY_HELLO_ASYNC_REQUEST,
   SAY_HELLO_ASYNC_SUCCESS,
   SAY_HELLO_ASYNC_FAILURE,
@@ -17,7 +17,7 @@ const initialState = Immutable.fromJS({
 
 const helloReducer = (state: Immut = initialState, action: { type: string, payload: any }) => {
   switch (action.type) {
-    case SAY_HELLO:
+    case RULES:
       return state.set('message', action.payload)
     case SAY_HELLO_ASYNC_REQUEST:
       return state.set('messageAsync', 'Loading...')

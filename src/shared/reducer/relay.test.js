@@ -1,5 +1,5 @@
 import {
-  sayHello,
+  rules,
   sayHelloAsyncRequest,
   sayHelloAsyncSuccess,
   sayHelloAsyncFailure,
@@ -19,7 +19,7 @@ test('handle default', () => {
 })
 
 test('handle SAY_HELLO', () => {
-  helloState = helloReducer(helloState, sayHello('Test'))
+  helloState = helloReducer(helloState, rules('Test'))
   expect(helloState.get('message')).toBe('Test')
 })
 

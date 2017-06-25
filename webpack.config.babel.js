@@ -19,6 +19,22 @@ export default {
   module: {
     rules: [
       { test: /\.(js|jsx)$/, use: 'babel-loader', exclude: /node_modules/ },
+      // { test: /\.jpg$/, use: 'file-loader' },
+      { test: /\.(jpe?g|png|gif|svg|ttf)$/i, use: { loader: 'url-loader', options: { limit: 25000 } } },
+    ],
+    loaders: [
+      // {
+      //   test: /\.(jpe?g|png|gif|svg)$/i,
+      //   loader: ['url-loader?limit=25000',
+      //     'file?hash=sha512&digest=hex&name=[hash].[ext]',
+      //     'image-webpack?bypassOnDebug&optimizationLevel=7&interlaced=false',
+      //   ],
+      // },
+      // {
+      //   test: /\.(png|svg)?$/,
+      //   loader: ['url-loader',
+      //   ],
+      // },
     ],
   },
   devtool: isProd ? false : 'source-map',

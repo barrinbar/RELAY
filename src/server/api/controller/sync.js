@@ -22,18 +22,38 @@ import {
 mongoose.set('debug', true)
 
 exports.validateMetadata = (req, res, next) => {
-  if (req.params.id && req.body.myNode) {
-    req.body.node = req.body.myNode
+  if (req.params.id) {
+    if (req.body.node) {
+      if (typeof req.body.node === 'string' || req.body.node instanceof String) {
+        req.body.node = JSON.parse(req.body.node)
+      }
+    } else {
+      return res.status(HTTP_BAD_REQUEST).json('node not supplemented (in param or in req body)')
+    }
+    if (req.body.knownRelationsList) {
+      if (typeof req.body.knownRelationsList === 'string' ||
+        req.body.knownRelationsList instanceof String) {
+        req.body.knownRelationsList = JSON.parse(req.body.knownRelationsList)
+      }
+    } else {
+      return res.status(HTTP_BAD_REQUEST).json('knownRelationsList not supplemented')
+    }
+    if (req.body.knownMessagesList) {
+      if (typeof req.body.knownMessagesList === 'string' ||
+        req.body.knownMessagesList instanceof String) {
+        req.body.knownMessagesList = JSON.parse(req.body.knownMessagesList)
+      }
+    } else {
+      return res.status(HTTP_BAD_REQUEST).json('knownMessagesList not supplemented')
+    }
     return next()
   }
-  // return next(new Error('Node not supplemented'))
-  return res.status(HTTP_BAD_REQUEST).json('Node not supplemented')
+  return res.status(HTTP_BAD_REQUEST).json('Metadata not supplemented')
 }
 
 // SyncMetadata
 exports.metadata = (req, res) => {
-  if (req.params.id && req.body.myNode) {
-    req.body.node = req.body.myNode
+  if (req.params.id && req.body.node) {
     node.update()
     // req.res.mRank = req.node.mRank
     // req.res.mTimeStampRankFromServer = req.node.mTimeStampRankFromServer
@@ -47,8 +67,7 @@ exports.metadata = (req, res) => {
         //     res.status(HTTP_OK).json(req.res)
         //   })
         // })
-    return res.status(HTTP_OK).send({ rank: req.node.mRank,
-      mTimeStampRankFromServer: req.node.mTimeStampRankFromServer,
+    return res.status(HTTP_OK).send({
       knownMessagesList: req.knownMessagesList,
       knownRelationsList: req.knownRelationsList })
   }
@@ -75,7 +94,7 @@ exports.data = (req, res, next) => {
                   from: 'relations', // Use the relations collection
                   startWith: '$friends', // Start looking at the document's `friends` property
                   connectFromField: 'friends', // A link in the graph is represented by the friends property...
-                  connectToField: '_id', // ... pointing to another node's _id property
+                  connectToField: 'mId', // ... pointing to another node's _id property
                   maxDepth: 1, // Only recurse one level deep
                   as: 'relations', // Store this in the `relations` property
                 },

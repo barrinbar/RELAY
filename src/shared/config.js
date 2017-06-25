@@ -4,10 +4,10 @@ export const WEB_PORT = process.env.PORT || 8000
 export const WDS_PORT = 7000
 export const STATIC_PATH = '/static'
 // TODO: handle auto mongo connection in heroku
-// export const MONGODB_URI = 'mongodb://localhost/RELAY'
-export const MONGODB_URI = 'mongodb://heroku_d4fbkbsq:pqg5iugu5degkdv2j5ku8m5r0u@ds139197.mlab.com:39197/heroku_d4fbkbsq'
+export const MONGODB_URI = 'mongodb://localhost/RELAY'
+// export const MONGODB_URI = 'mongodb://heroku_d4fbkbsq:pqg5iugu5degkdv2j5ku8m5r0u@ds139197.mlab.com:39197/heroku_d4fbkbsq'
 export const APP_NAME = 'RELAY'
-
+export const APP_LOGO = '/src/shared/res/favicon.png'
 export const APP_CONTAINER_CLASS = 'js-app'
 export const APP_CONTAINER_SELECTOR = `.${APP_CONTAINER_CLASS}`
 export const JSS_SSR_CLASS = 'jss-ssr'

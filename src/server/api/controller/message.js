@@ -42,29 +42,101 @@ exports.findById = (req, res) => {
   }
 }
 
+exports.getIds = () => {
+  Message.find({}).select({ mId: 1, _id: 0 }, (err, messages) => {
+    if (err) {
+      return err
+    }
+    const result = []
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      result.push(messages[i])
+    }
+    return result
+  })
+}
+
+exports.getByNode = (node) => {
+  Message.find({ mId: node }, (err, message) => {
+    if (err) {
+      return err
+    }
+    return message
+  })
+}
+
+exports.getNodeMessagesIds = (node) => {
+  const result = []
+
+  // Retrieve outgoing messages
+  Message.find({ mSenderId: node }).select({ mId: 1, _id: 0 }, (err, senderMsgs) => {
+    if (err) { /* Do Something */ }
+    for (let i = senderMsgs.length - 1; i >= 0; i -= 1) {
+      result.push(senderMsgs[i])
+    }
+  })
+
+  // Retrieve incoming messages
+  Message.find({ mDestinationId: node }).select({ mId: 1, _id: 0 }, (err, destMsgs) => {
+    if (err) { /* Do Something */ }
+    for (let i = destMsgs.length - 1; i >= 0; i -= 1) {
+      result.push(destMsgs[i])
+    }
+  })
+  return result
+}
+
+exports.getNodeMessagesStatus = (node) => {
+  const result = []
+
+  // Retrieve outgoing messages
+  Message.find({ mSenderId: node }).select({ mId: 1, mStatus: 1, _id: 0 }, (err, senderMsgs) => {
+    if (err) { /* Do Something */ }
+    for (let i = senderMsgs.length - 1; i >= 0; i -= 1) {
+      const currMessage = { messageId: senderMsgs[i].mId, status: senderMsgs[i].mStatus }
+      result.push(currMessage)
+    }
+  })
+
+  // Retrieve incoming messages
+  Message.find({ mDestinationId: node }).select({ mId: 1, mStatus: 1, _id: 0 }, (err, destMsgs) => {
+    if (err) { /* Do Something */ }
+    for (let i = destMsgs.length - 1; i >= 0; i -= 1) {
+      const currMessage = { messageId: destMsgs[i].mId, status: destMsgs[i].mStatus }
+      result.push(currMessage)
+    }
+  })
+  return result
+}
+
 exports.add = (req, res) => {
-  const newMessage = new Message(req.body.message)
-  // if (req.body.message.uuid !== ('' || null)) {
-  //   newMessage._id = req.body.message.uuid
-  // }
-  if (req.body.message.mStatus !== ('' || null) && req.body.message.mStatus !== STATUS_MESSAGE_DELIVERED) {
-    newMessage.mStatus = STATUS_MESSAGE_RECEIVED_IN_SERVER
-  }
-  try {
-    newMessage.save((err) => {
-      if (err) {
-        res.send(err)
-      } else {
-        res.status(HTTP_CREATED).json({ message: 'Message added!' })
-      }
-    })
-  } catch (ex) {
-    res.status(HTTP_INTERNAL_SERVER_ERROR).send(ex)
+  if (req.body.message) {
+    if (typeof req.body.message === 'string' || req.body.message instanceof String) {
+      req.body.message = JSON.parse(req.body.message)
+    }
+    const newMessage = new Message(req.body.message)
+    if (req.body.message.mStatus !== ('' || null) && req.body.message.mStatus !== STATUS_MESSAGE_DELIVERED) {
+      newMessage.mStatus = STATUS_MESSAGE_RECEIVED_IN_SERVER
+    }
+    try {
+      newMessage.save((err) => {
+        if (err) {
+          res.send(err)
+        } else {
+          req.message = newMessage
+          res.status(HTTP_CREATED).json({ message: 'Message added!' })
+        }
+      })
+    } catch (ex) {
+      res.status(HTTP_INTERNAL_SERVER_ERROR).send(ex)
+    }
   }
 }
 
 exports.addMany = (req, res) => {
   if (req.body.messages) {
+    if (typeof req.body.messages === 'string' || req.body.messages instanceof String) {
+      req.body.messages = JSON.parse(req.body.messages)
+    }
     try {
       Message.insertMany(req.body.messages, (err, messages) => {
         if (err) {
@@ -81,11 +153,15 @@ exports.addMany = (req, res) => {
 
 exports.update = (req, res) => {
   if (req.params.id) {
+    if (typeof req.body.message === 'string' || req.body.message instanceof String) {
+      req.body.message = JSON.parse(req.body.message)
+    }
     Message.findOneAndUpdate(req.params.id, req.body.message, { new: true, upsert: true },
     (err, message) => {
       if (err) {
         res.status(HTTP_NOT_FOUND).send(err)
       } else {
+        req.message = message
         res.status(HTTP_OK).json(message)
       }
     })
@@ -122,7 +198,7 @@ exports.syncMetadata = (req, res, next) => {
 exports.delete = (req, res) => {
   if (req.params.id) {
     Message.remove({
-      _id: req.params.id,
+      mId: req.params.id,
     }, (err) => {
       if (err) {
         res.status(HTTP_NOT_FOUND).send(err)
@@ -134,3 +210,85 @@ exports.delete = (req, res) => {
     res.status(HTTP_BAD_REQUEST).send('No message id')
   }
 }
+
+exports.knownMessages = (req, res, next) => {
+  // Make sure node sent known relations and messages
+  if (!req.body.knownMessagesList || !req.body.knownRelationsList) {
+    return res.status(HTTP_BAD_REQUEST)
+    .json('knownMessagesList and knownRelationsList must be provided')
+  }
+  // Make sure known relations were listed
+  if (!req.knownRelationsList) {
+    return res.status(HTTP_INTERNAL_SERVER_ERROR)
+    .json('knownRelationsList must be created befor knownMessagesList')
+  }
+
+  const knownMessagesList = new Map()
+  // uuidArrayList = this.getNodeMessagesIds();
+
+  for (let i = 0; i < req.knownRelationsList.length; i += 1) {
+    const nodeMessages = this.getNodeMessagesStatus(req.knownRelationsList[i])
+    for (let j = 0; j < nodeMessages.length; i += 1) {
+      knownMessagesList.set(nodeMessages[j].messageId, nodeMessages[j].status)
+    }
+  }
+  console.log(`Known messages\n: ${knownMessagesList}`)
+  req.knownMessagesList = knownMessagesList
+  return next(knownMessagesList)
+}
+
+// exports.knownMessages = (req, res, next) => {
+//   if (!req.body.knownMessagesList || !req.body.knownRelationsList) {
+//     return res.status(HTTP_BAD_REQUEST)
+//     .json('knownMessagesList and knownRelationsList must be provided')
+//   }
+//   const allNodeRelations = this.getNodeMessagesIds
+//   for (let i = 0; i < allNodeRelations.length; i += 1) {
+//     const currNode = allNodeRelations[i]
+//     if (req.body.knownMessagesList.indexOf(currNode) === -1) {
+//       const relayMessage = relation.getByNode(currNode)
+//       const destinationId = relayMessage.mDestinationId
+//       const senderId = relayMessage.mSenderId
+
+//      // if sender or destination in receivedKnownRelations(all degrees) of device, add to list
+//      if ((req.body.knownRelationsList.indexOf(destinationId) != -1) ||
+//          (req.body.knownRelationsList.indexOf(senderId) != -1) ||
+//          newNodeIdList.containsKey(destinationId) ||
+//          newNodeIdList.containsKey(senderId)) {
+
+//          // if the sender of the msg is the sync device but he doesn't have the msg,
+//          // it's means that he deleted it, therefor don't pass the msg and update it as
+//          // a delivered msg
+//          if (senderId.equals(receivedMetadata.getMyNode().getId()))
+//              relayMessage.setStatus(RelayMessage.STATUS_MESSAGE_DELIVERED);
+
+//          // if the message status is already delivered, delete the content of the message and
+//          // send only the 'log' of the message
+//          if (relayMessage.getStatus() == RelayMessage.STATUS_MESSAGE_DELIVERED){
+//              relayMessage.deleteAttachment();
+//              relayMessage.deleteContent();
+//          }
+
+//          // add message according to its type
+//          if (relayMessage.getType() == RelayMessage.TYPE_MESSAGE_TEXT)
+//              textMessagesToSend.add(relayMessage);
+//          else{
+//              // if the message type is object message but the attachment is's null because
+//              // the message status is delivered, add the message to text message list to
+//              // make the hand shake be quicker.
+//              if (relayMessage.getAttachment() == null)
+//                  textMessagesToSend.add(relayMessage);
+//              else
+//                  objectMessagesToSend.add(relayMessage);
+//          }
+//     }
+//     }
+//   }
+//   return next()
+// }
+//   // if (graphRelations === [] || graphRelations === null) {
+//   //   return next()
+//   // }
+//   // req.knownMessagesList = graphRelations
+//   // return next(graphRelations)
+
