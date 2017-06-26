@@ -212,30 +212,65 @@ exports.delete = (req, res) => {
 }
 
 exports.knownMessages = (req, res, next) => {
-  // Make sure node sent known relations and messages
-  if (!req.body.knownMessagesList || !req.body.knownRelationsList) {
-    return res.status(HTTP_BAD_REQUEST)
-    .json('knownMessagesList and knownRelationsList must be provided')
-  }
   // Make sure known relations were listed
   if (!req.knownRelationsList) {
-    return res.status(HTTP_INTERNAL_SERVER_ERROR)
-    .json('knownRelationsList must be created befor knownMessagesList')
-  }
+    res.status(HTTP_INTERNAL_SERVER_ERROR)
+    .json('knownRelationsList must be created before knownMessagesList')
+  } else {
+    const knownMessagesList = []
+    const promises = []
+    // Go through all node relations ranks
+    req.knownRelationsList.forEach((rank) => {
+      // Go through all nodes in rank
+      rank.forEach((node) => {
+        // Retrieve outgoing messages
+        const searchList = []
+        searchList.push(mongoose.Types.ObjectId(node.node))
+        for (let i = 0; i < node.relations.length; i += 1) {
+          searchList.push(mongoose.Types.ObjectId(node.relations[i]))
+        }
+        // const outPromise = Message.find({ mSenderId: mongoose.Types.ObjectId(node.node) })
+        const outPromise = Message.find({ senderId: { $in: searchList } })
+          .select({ uuid: 1, status: 1, _id: 0 }).exec()
+        promises.push(outPromise.then((senderMsgs, err) => {
+          console.log(`senderMsgs: ${senderMsgs}`)
+          if (!err) {
+            senderMsgs.forEach((message) => {
+              console.log('Curr message:')
+              console.log(message)
+              if (knownMessagesList.findIndex(n => n.uuid === message.uuid) === -1) {
+                // TODO: check if message exists in node known messages
+                // and update status as necessary
+                knownMessagesList.push(message)
+              }
+            })
+          }
+        }))
 
-  const knownMessagesList = new Map()
-  // uuidArrayList = this.getNodeMessagesIds();
-
-  for (let i = 0; i < req.knownRelationsList.length; i += 1) {
-    const nodeMessages = this.getNodeMessagesStatus(req.knownRelationsList[i])
-    for (let j = 0; j < nodeMessages.length; i += 1) {
-      knownMessagesList.set(nodeMessages[j].messageId, nodeMessages[j].status)
-    }
+        // Retrieve incoming messages
+        const inPromise = Message.find({ destinationId: { $in: searchList } })
+          .select({ uuid: 1, status: 1, _id: 0 }).exec()
+        promises.push(inPromise.then((destMsgs, err) => {
+          if (!err) {
+            destMsgs.forEach((message) => {
+              if (knownMessagesList.findIndex(n => n.uuid === message.uuid) === -1) {
+                // TODO: check if message exists in node known messages
+                // and update status as necessary
+                knownMessagesList.push(message)
+              }
+            })
+          }
+        }))
+      })
+    })
+    Promise.all(promises).then(() => {
+      console.log(`Known messages\n: ${knownMessagesList}`)
+      req.knownMessagesList = knownMessagesList
+      next(knownMessagesList)
+    })
   }
-  console.log(`Known messages\n: ${knownMessagesList}`)
-  req.knownMessagesList = knownMessagesList
-  return next(knownMessagesList)
 }
+
 
 // exports.knownMessages = (req, res, next) => {
 //   if (!req.body.knownMessagesList || !req.body.knownRelationsList) {

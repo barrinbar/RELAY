@@ -21,7 +21,6 @@ import {
   helloEndpointRoute,
   NODE_API_ROUTE,
   RELATION_API_ROUTE,
-  // GRAPH_API_ROUTE,
   MESSAGE_API_ROUTE,
   HANDSHAKE_API_ROUTE,
   RULES_API_ROUTE,
@@ -84,7 +83,9 @@ export default (app: Object) => {
       .put(handshake.update)
       .delete(handshake.delete)
 
-  app.route(RULES_API_ROUTE).get(rules.get)
+  app.route(RULES_API_ROUTE)
+      .get(rules.findAll)
+      // .post(rules.add)
   app.route(`${MSBN_DURATION_API_ROUTE}/:val`).put(rules.updateMSBNDuration)
   app.route(`${MSNS_DURATION_API_ROUTE}/:val`).put(rules.updateMSNSDuration)
   app.route(`${MSBN_RATIO_API_ROUTE}/:val`).put(rules.updateMSBNRatio)
@@ -97,7 +98,8 @@ export default (app: Object) => {
     sync.validateMetadata,
     node.update,
     relation.knownRelations,
-    message.knownMessages, (req, res) => res.status(HTTP_OK).send({
+    message.knownMessages,
+    (req, res) => res.status(HTTP_OK).send({
       knownMessagesList: req.knownMessagesList,
       knownRelationsList: req.knownRelationsList }))
   app.route(`${SYNC_DATA_API_ROUTE}/:id`).put(sync.data)

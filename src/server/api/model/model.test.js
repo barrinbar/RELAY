@@ -39,17 +39,17 @@ test('Check Message Schema', () => {
   const Message = mongoose.model('messages')
   const newMessage = new Message({
     _id: '592a9e2b13928b85d225b55f',
-    mTimeCreated: new Date(),
-    mStatus: STATUS_MESSAGE_CREATED,
-    mSenderId: String,
-    mDestinationId: String,
-    mType: TYPE_MESSAGE_TEXT,
-    mContent: 'Hello World',
-    mAttachment: {},
+    timeCreated: new Date(),
+    status: STATUS_MESSAGE_CREATED,
+    senderId: String,
+    destinationId: String,
+    type: TYPE_MESSAGE_TEXT,
+    content: 'Hello World',
+    attachment: {},
   })
 
   expect(newMessage._id).toEqual(new mongoose.Types.ObjectId('592a9e2b13928b85d225b55f'))
-  expect(newMessage.mContent).toBe('Hello World')
+  expect(newMessage.content).toBe('Hello World')
 })
 
 test('Check Handshake Schema', () => {

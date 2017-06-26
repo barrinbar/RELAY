@@ -37,15 +37,6 @@ exports.findById = (req, res) => {
   }
 }
 
-// function getRelations(theNode, next) {
-//   Relation.find({ node: theNode }).select({ relations: 1, _id: 0 }).exec((err, relation) => {
-//     if (err) {
-//       return next(err)
-//     }
-//     return next(relation)
-//   })
-// }
-
 exports.add = (req, res) => {
   if (req.body.relation) {
     if (typeof req.body.relation === 'string' || req.body.relation instanceof String) {
@@ -222,51 +213,10 @@ function getIds(next) {
         fullNode.relations = neighbours.relations
         result.push(fullNode)
       }))
-      // if (result.length === nodes.length) {
-      //   console.log(`Allllll Ids:${result}`)
-      //   return next(result)
     })
-    Promise.all(promises).then(() => {
-      console.log(`Found the following Ids: ${result}`)
-      return next(result)
-    })
+    Promise.all(promises).then(() => { next(result) })
   })
 }
-
-// function getIds(next) {
-//   Relation.find({}).select({ node: 1, _id: 0 }).exec((err, nodes) => {
-//     if (err) {
-//       return next(err)
-//     }
-//     const result = []
-//     console.log(`Found nodes: ${nodes}`)
-//     // for (let i = nodes.length - 1; i >= 0; i -= 1) {
-//     nodes.forEach((node) => {
-//       console.log(`Looking for neighbours of node: ${node}`)
-//       getNeighbours(node, (error, fullNode) => {
-//         console.log(`Found node: ${fullNode}`)
-//         if (!error) { result.push(fullNode) }
-//       })
-//       // try {
-//       //   // Get relations of Id
-//       //   Relation.find({ node: nodes[i] }).select({ relations: 1, _id: 0 })
-//       //   .exec((error, relations) => {
-//       //     console.log(`Node: ${nodes[i]}, relations: ${relations}`)
-//       //     if (!error) {
-//       //       const node = nodes[i]
-//       //       node.relations = relations
-//       //       console.log(`Full Node: ${node}`)
-//       //       result.push(node)
-//       //     }
-//       //   })
-//       // } catch (ex) {
-//       //   console.error(ex)
-//       // }
-//     })
-//     console.log(`All Ids:${result}`)
-//     return next(result)
-//   })
-// }
 
 /**
 * breadth-first search from a single source
@@ -278,9 +228,7 @@ function bfs(nodesArrayList, s, next) {
   let edgeTo = []      // edgeTo[v] = previous edge on shortest s-v path
   let distTo = []      // distTo[v] = number of edges shortest s-v path
 
-  console.log(`BFS got the following relations: ${nodesArrayList} and the following s: ${s}`)
   // getIds((nodesArrayList) => {
-  console.log(nodesArrayList)
   marked = new Array(nodesArrayList.length)
   distTo = new Array(nodesArrayList.length)
   edgeTo = new Array(nodesArrayList.length)
@@ -290,16 +238,20 @@ function bfs(nodesArrayList, s, next) {
 
   const graphOrderedByDegree = []
 
-  if (nodesArrayList.indexOf(s) !== -1) {
+  if (typeof (nodesArrayList.find(n => n.node.equals(s))) !== 'undefined') {
+  // if (nodesArrayList.indexOf(s) !== -1) { //Doesn't work
     const q = []
     for (let i = 0; i < nodesArrayList.length; i += 1) {
       distTo[i] = INFINITY
     }
-    distTo[nodesArrayList.indexOf(s)] = 0
-    marked[nodesArrayList.indexOf(s)] = true
-    q.push(s)
 
-    while (!q.isEmpty()) {
+    const si = nodesArrayList.findIndex(n => n.node.equals(s))
+    distTo[si] = 0
+    marked[si] = true
+    // q.push(s)
+    q.push(nodesArrayList[si])
+
+    while (q.length !== 0) {
       const v = q.shift()
       const vi = nodesArrayList.indexOf(v)
       const dist = distTo[vi]
@@ -315,70 +267,40 @@ function bfs(nodesArrayList, s, next) {
         // graphOrderedByDegree.push({ dist, tempList })
         graphOrderedByDegree[dist] = tempList
       }
-
-      // const neighbours = module.exports.getRelations(v)
-      // for (let i = 0; i < neighbours.length; i += 1) {
-      //   const w = neighbours[i].relations
-      //   if (nodesArrayList.contains(w)) { // Ignore relations of nodes that aren't in nodeDB
-      //     if (!marked[nodesArrayList.indexOf(w)]) {
-      //       edgeTo[nodesArrayList.indexOf(w)] = nodesArrayList.indexOf(v)
-      //       distTo[nodesArrayList.indexOf(w)] = distTo[nodesArrayList.indexOf(v)] + 1
-      //       marked[nodesArrayList.indexOf(w)] = true
-      //       q.add(w)
-      //     }
-      //   }
-      // }
-      const neighbours = nodesArrayList[vi].relations
+      const neighbours = v.relations
       for (let i = 0; i < neighbours.length; i += 1) {
-        const w = neighbours[i]
-        if (nodesArrayList.contains(w)) { // Ignore relations of nodes that aren't in nodeDB
-          if (!marked[nodesArrayList.indexOf(w)]) {
-            edgeTo[nodesArrayList.indexOf(w)] = nodesArrayList.indexOf(v)
-            distTo[nodesArrayList.indexOf(w)] = distTo[nodesArrayList.indexOf(v)] + 1
-            marked[nodesArrayList.indexOf(w)] = true
-            q.add(w)
+        const wi = nodesArrayList.findIndex(n => n.node.equals(neighbours[i]))
+        if (wi !== -1) { // Ignore relations of nodes that aren't in nodeDB
+          if (!marked[wi]) {
+            edgeTo[wi] = nodesArrayList.indexOf(v)
+            distTo[wi] = distTo[nodesArrayList.indexOf(v)] + 1
+            marked[wi] = true
+            q.push(nodesArrayList[wi])
           }
         }
       }
     }
   }
   // Turn sets to array
-  for (let i; i < graphOrderedByDegree.length; i += 1) {
+  for (let i = 0; i < graphOrderedByDegree.length; i += 1) {
     graphOrderedByDegree[i] = [...graphOrderedByDegree[i]]
   }
   return next(graphOrderedByDegree)
   // })
 }
 
-function indexOfProperty(myArray, searchTerm, property) {
-  for (let i = 0, len = myArray.length; i < len; i += 1) {
-    if (myArray[i][property] === searchTerm) return i
-  }
-  return -1
-}
-
 exports.knownRelations = (req, res, next) => {
   getIds((nodesArrayList) => {
     if (nodesArrayList) {
-      const nodeIndex = indexOfProperty(nodesArrayList, req.param.id, 'node')
-      console.log(`nodeIndex: ${nodeIndex}`)
-      bfs(nodesArrayList, nodesArrayList[nodeIndex],
+      bfs(nodesArrayList, mongoose.Types.ObjectId(req.params.id),
       (graphRelations) => {
-        if (graphRelations === [] || graphRelations === null) {
+        if (graphRelations === [] || graphRelations === null || typeof graphRelations === 'undefined') {
+          console.log('No relations graph found')
           return next()
         }
-        console.log(`Known relations list:\n${graphRelations}`)
         req.knownRelationsList = graphRelations
-        return next(graphRelations)
+        return next()
       })
     }
   })
-  // const graphRelations = module.exports.bfs(module.exports
-  // .getRelations(req.param.id), req.param.id)
-  // if (graphRelations === [] || graphRelations === null) {
-  //   return next()
-  // }
-  // console.log(`Known relations list:\n${graphRelations}`)
-  // req.knownRelationsList = graphRelations
-  // return next(graphRelations)
 }

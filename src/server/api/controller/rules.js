@@ -11,17 +11,30 @@ import {
 
 mongoose.set('debug', true)
 
-exports.get = (req, res, next) => {
+exports.findAll = (req, res/* , next*/) => {
   Rule.find({}, (err, rules) => {
     if (err) {
-      res.status(HTTP_NOT_FOUND).send(err)
-    } else {
-      req.rules = rules[0]
-      next()
-      // res.status(HTTP_OK).json(rules[0])
+      return res.status(HTTP_NOT_FOUND).send(err)
     }
+    req.rules = rules[0]
+    return res.status(HTTP_OK).json(rules)
   })
 }
+
+// exports.add = (req, res) => {
+//   const newRule = new Rule(req.body.rules)
+//   try {
+//     newRule.save((err) => {
+//       if (err) {
+//         return res.send(err)
+//       }
+//       req.rules = newRule
+//       return res.status(HTTP_CREATED).json({ message: 'Rules added!' })
+//     })
+//   } catch (ex) {
+//     res.status(HTTP_INTERNAL_SERVER_ERROR).send(ex)
+//   }
+// }
 
 exports.updateMSBNDuration = (req, res) => {
   if (req.params.val) {
@@ -57,8 +70,8 @@ exports.updateMSNSDuration = (req, res) => {
 
 exports.updateMSBNRatio = (req, res) => {
   if ((req.params.val) &&
-    (Number((req.params.val).toFixed(1)) >= 0) &&
-    (Number((req.params.val).toFixed(1)) <= 1)) {
+    ((Number(req.params.val).toFixed(1)) >= 0) &&
+    ((Number(req.params.val).toFixed(1)) <= 1)) {
     const query = {}
     const options = { multi: true }
     Rule.update(query, { MSBNRatio: `${req.params.val}` }, options, (err, rules) => {
@@ -75,8 +88,8 @@ exports.updateMSBNRatio = (req, res) => {
 
 exports.updateMSNSRatio = (req, res) => {
   if ((req.params.val) &&
-    (Number((req.params.val).toFixed(1)) >= 0) &&
-    (Number((req.params.val).toFixed(1)) <= 1)) {
+    ((Number(req.params.val).toFixed(1)) >= 0) &&
+    ((Number(req.params.val).toFixed(1)) <= 1)) {
     const query = {}
     const options = { multi: true }
     Rule.update(query, { MSNSRatio: `${req.params.val}` }, options, (err, rules) => {
@@ -111,7 +124,7 @@ exports.updateRandomNodeTime = (req, res) => {
   if (req.params.val) {
     const query = {}
     const options = { multi: true }
-    Rule.update(query, { RandomRuleTime: `${req.params.val}` }, options, (err, rules) => {
+    Rule.update(query, { RandomNodeTime: `${req.params.val}` }, options, (err, rules) => {
       if (err) {
         res.status(HTTP_NOT_FOUND).send(err)
       } else {
