@@ -12,7 +12,8 @@
     "jest": true
   },
   "settings": {
-    "polyfills": ["fetch"]
+    "polyfills": ["fetch"],
+    "import/extensions": [".js", ".jsx"]
   },
   "rules": {
     "semi": [2, "never"],
