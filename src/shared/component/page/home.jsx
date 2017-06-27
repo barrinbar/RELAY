@@ -38,7 +38,7 @@ const HomePage = ({ classes }: { classes: Object }) =>
     </Helmet>
     <div className="container">
       <div className="embed-responsive embed-responsive-16by9">
-        <iframe className="embed-responsive-item" src="https://player.vimeo.com/video/219468290" webkitAllowFullscreen mozAllowFullScreen allowFullScreen />
+        <iframe className="embed-responsive-item" src="https://player.vimeo.com/video/223020412" webkitAllowFullscreen mozAllowFullScreen allowFullScreen />
       </div>
       <br />
       <div className="row">
