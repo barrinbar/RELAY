@@ -13,9 +13,10 @@ FE Android App Designed & Created by [@omerel](https://github.com//omerel) avial
 
 * [NodeJS](https://nodejs.org/) & [ES6](http://es6-features.org/)
 * Front-End: [React](https://facebook.github.io/react/) + [Redux](http://redux.js.org)
-* Back-End: [Express](https://expressjs.com)
+* Routing & Middleware: [Express](https://expressjs.com)
+* DB & ORM: [MongoDB](https://www.mongodb.com) + [Mongoose](http://mongoosejs.com/)
 * Styling: [Bootstrap 4](https://v4-alpha.getbootstrap.com), [JSS](http://cssinjs.org/)
-* Libs: [ImmutableJS](https://facebook.github.io/immutable-js/), [socket.io](https://github.com/socketio/socket.io), [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)
+* Libs: [ImmutableJS](https://facebook.github.io/immutable-js/), [socket.io](https://github.com/socketio/socket.io), [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch), [bluebird](http://bluebirdjs.com/), [body-parser](https://github.com/expressjs/body-parser)
 * Linting / Type Checking: [ESLint](http://eslint.org/), [Flow](https://flowtype.org/), [Compat](https://github.com/amilajack/eslint-plugin-compat)
 * Testing: [Jest](https://facebook.github.io/jest/)
 * Build: [Babel](https://babeljs.io/), [Webpack](https://webpack.js.org/)
